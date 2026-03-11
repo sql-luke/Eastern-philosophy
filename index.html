@@ -2,8 +2,8 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>東方哲學館｜智慧特稿展示中心</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>東方哲學館｜數位智慧特稿</title>
     <!-- 載入必要套件 -->
     <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
@@ -12,88 +12,72 @@
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <link href="https://cdn.jsdelivr.net/npm/lucide-static@0.321.0/font/lucide.min.css" rel="stylesheet">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@500;900&family=Noto+Sans+TC:wght@300;400;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@600;900&family=Noto+Sans+TC:wght@300;400;700&display=swap');
         
-        :root {
-            --zen-bg: #fdfdfd;
-            --zen-paper: #ffffff;
-            --zen-ink: #2d3436;
-            --zen-accent: #718096;
-            --zen-primary: #1a202c;
-        }
-
         body { 
             font-family: 'Noto Sans TC', sans-serif; 
-            background-color: var(--zen-bg);
-            color: var(--zen-ink);
+            background-color: #ffffff;
+            color: #1a202c;
+            margin: 0;
             -webkit-font-smoothing: antialiased;
         }
         
         .font-serif { font-family: 'Noto Serif TC', serif; }
 
-        /* --- 哲學特稿渲染樣式 --- */
-        .philosophy-body {
+        /* --- 核心：Markdown 內容渲染樣式 (徹底解決排版問題) --- */
+        .markdown-render {
             line-height: 2.2;
             font-size: 1.125rem;
-            color: #374151;
-            text-align: justify;
+            color: #334155;
         }
-        .philosophy-body h1, .philosophy-body h2, .philosophy-body h3 {
+        /* 標題樣式 */
+        .markdown-render h1 { font-size: 2.5rem; font-weight: 900; margin-bottom: 2rem; color: #0f172a; text-align: center; font-family: 'Noto Serif TC', serif; }
+        .markdown-render h2 { 
             font-family: 'Noto Serif TC', serif;
-            color: var(--zen-primary);
-            margin-top: 3.5rem;
-            margin-bottom: 1.5rem;
+            font-size: 1.8rem; 
+            margin: 3.5rem 0 1.5rem;
             font-weight: 900;
+            color: #1a202c;
+            border-left: 8px solid #1e293b;
+            padding-left: 1.25rem;
         }
-        .philosophy-body h2 { 
-            font-size: 2.25rem; 
-            letter-spacing: -0.02em;
-            border-bottom: 1px solid #edf2f7;
-            padding-bottom: 1rem;
+        .markdown-render p { margin-bottom: 1.8rem; text-align: justify; }
+        
+        /* 表格優化：解決「不偏不倚」文字擠壓問題 */
+        .markdown-render table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 2.5rem 0;
+            font-size: 1rem;
+            display: block; 
+            overflow-x: auto; /* 手機端支援滑動 */
+            border: 1px solid #e2e8f0;
+            background: #ffffff;
         }
-        .philosophy-body h3 { font-size: 1.6rem; color: #4a5568; }
-        
-        .philosophy-body p { margin-bottom: 2rem; letter-spacing: 0.02em; }
-        
-        .philosophy-body blockquote {
-            border-left: 2px solid #a0aec0;
-            padding: 2rem 2.5rem;
-            background: #f7fafc;
+        .markdown-render th { background: #f8fafc; padding: 14px 20px; border: 1px solid #e2e8f0; font-weight: 900; color: #1e293b; text-align: left; min-width: 160px; }
+        .markdown-render td { padding: 14px 20px; border: 1px solid #e2e8f0; vertical-align: top; min-width: 220px; line-height: 1.8; }
+
+        .markdown-render blockquote {
+            border-left: 5px solid #4f46e5;
+            padding: 1.5rem 2rem;
+            background: #f8fafc;
+            margin: 2.5rem 0;
+            color: #475569;
             font-style: italic;
-            border-radius: 0.25rem;
-            margin: 3rem 0;
-            color: #4a5568;
             font-family: 'Noto Serif TC', serif;
         }
 
-        .philosophy-body table {
-            width: 100%;
-            border-collapse: separate;
-            border-spacing: 0;
-            margin: 3.5rem 0;
-            background: #fff;
-            border-radius: 0.75rem;
-            overflow: hidden;
-            box-shadow: 0 4px 25px -10px rgb(0 0 0 / 0.08);
-            border: 1px solid #f1f5f9;
-        }
-        .philosophy-body th { background: #f8fafc; padding: 1.5rem; text-align: left; font-weight: 800; color: #2d3748; border-bottom: 2px solid #edf2f7; }
-        .philosophy-body td { padding: 1.5rem; border-bottom: 1px solid #f8fafc; }
-
-        .custom-scroll::-webkit-scrollbar { width: 3px; }
-        .custom-scroll::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
+        /* 側邊欄滑動動畫 */
+        .drawer-transition { transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
         
-        .fade-in { animation: fadeIn 1.2s ease-out forwards; }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        /* 派系配色 */
-        .badge-儒 { color: #9b2c2c; border-color: #feb2b2; background: #fff5f5; }
-        .badge-道 { color: #22543d; border-color: #9ae6b4; background: #f0fff4; }
-        .badge-釋 { color: #744210; border-color: #fbd38d; background: #fffaf0; }
-        .badge-default { color: #2d3748; border-color: #e2e8f0; background: #f7fafc; }
+        /* 隱藏原生捲軸 */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        
+        /* 派系配色標籤 */
+        .sect-badge { display: inline-block; padding: 6px 20px; border-radius: 99px; font-size: 11px; font-weight: 900; border: 1px solid; letter-spacing: 3px; margin-bottom: 2rem; }
+        .badge-ru { color: #9b2c2c; border-color: #feb2b2; background: #fff5f5; }
+        .badge-dao { color: #22543d; border-color: #9ae6b4; background: #f0fff4; }
+        .badge-fo { color: #b7791f; border-color: #fbd38d; background: #fffaf0; }
     </style>
 </head>
 <body class="overflow-hidden">
@@ -102,155 +86,150 @@
     <script type="text/babel">
         const { useState, useEffect } = React;
 
-        // 這是您提供的「東方哲學館」API 網址
-        const GAS_API_URL = "https://script.google.com/macros/s/AKfycbw3D4tlhV9d1wYlVZxR0XVSKUAQ_e4J-xCIURVB5DuOL0bSa-3adEDz3ozcC2Rym4UE/exec";
+        // 設定 Markdown 解析選項
+        marked.setOptions({ gfm: true, breaks: true, tables: true });
 
-        const Icon = ({ name, size = 20, className = "" }) => (
-            <i className={`lucide-${name} ${className}`} style={{ fontSize: size }}></i>
-        );
+        // 您的東方哲學館 API 網址
+        const API_URL = "https://script.google.com/macros/s/AKfycbw3D4tlhV9d1wYlVZxR0XVSKUAQ_e4J-xCIURVB5DuOL0bSa-3adEDz3ozcC2Rym4UE/exec";
 
         const App = () => {
             const [lessons, setLessons] = useState([]);
             const [loading, setLoading] = useState(true);
             const [selected, setSelected] = useState(null);
             const [searchTerm, setSearchTerm] = useState('');
-            const [showWisdom, setShowWisdom] = useState(false);
+            const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
             useEffect(() => {
-                const loadData = async () => {
-                    try {
-                        const res = await fetch(GAS_API_URL);
-                        const data = await res.json();
+                fetch(API_URL)
+                    .then(res => res.json())
+                    .then(data => {
                         setLessons(data);
                         if (data.length > 0) setSelected(data[data.length - 1]);
-                    } catch (err) {
-                        console.error("哲學館連線失敗:", err);
-                    } finally {
                         setLoading(false);
-                    }
-                };
-                loadData();
+                    })
+                    .catch(() => setLoading(false));
             }, []);
 
-            const filtered = lessons.filter(l => 
-                (l.topic?.toLowerCase() || "").includes(searchTerm.toLowerCase()) || 
-                (l.era?.toLowerCase() || "").includes(searchTerm.toLowerCase())
-            );
-
-            const getHtmlContent = (content) => {
-                if (!content) return "";
-                let cleanBody = content.replace(/```json[\s\S]*?```/g, "");
-                const parts = cleanBody.split('---');
-                const rawMarkdown = parts.length >= 3 ? parts.slice(2).join('---').trim() : cleanBody.trim();
-                return marked.parse(rawMarkdown);
+            const getSectClass = (era = "") => {
+                if (era.includes("儒")) return "badge-ru";
+                if (era.includes("道")) return "badge-dao";
+                if (era.includes("釋") || era.includes("佛")) return "badge-fo";
+                return "text-slate-500 border-slate-200 bg-slate-50";
             };
 
-            const getBadgeClass = (era) => {
-                if (era?.includes("儒")) return "badge-儒";
-                if (era?.includes("道")) return "badge-道";
-                if (era?.includes("釋") || era?.includes("佛")) return "badge-釋";
-                return "badge-default";
+            // 【終極修復邏輯】：徹底移除標題之前的所有 metadata 與表格碎屑
+            const cleanContent = (raw) => {
+                if (!raw) return "";
+                // 1. 移除 JSON 塊
+                let content = raw.replace(/```json[\s\S]*?```/g, "");
+                
+                // 2. 核心修正：尋找第一個「# 」（Markdown 標題）
+                // 拋棄所有在標題之前的內容，因為那些是導致 ------- | :--- 的元兇
+                const titlePos = content.search(/^#\s/m);
+                if (titlePos !== -1) {
+                    content = content.substring(titlePos);
+                }
+                
+                return marked.parse(content);
             };
 
             if (loading) return (
                 <div className="h-screen w-screen flex flex-col items-center justify-center bg-white">
-                    <div className="w-6 h-6 border-[1px] border-slate-200 border-t-slate-800 rounded-full animate-spin mb-6"></div>
-                    <p className="text-[10px] font-bold tracking-[0.5em] text-slate-300 uppercase">Seek Wisdom Within</p>
+                    <div className="w-12 h-12 border-4 border-slate-100 border-t-slate-900 rounded-full animate-spin mb-6"></div>
+                    <p className="text-xs font-black tracking-widest text-slate-400 uppercase">Synchronizing Wisdom...</p>
                 </div>
             );
 
             return (
-                <div className="flex h-screen w-screen overflow-hidden">
-                    {/* 簡約側邊欄 */}
-                    <aside className="w-80 bg-white border-r border-slate-50 flex flex-col z-20">
-                        <div className="p-10 pb-8">
-                            <div className="flex flex-col items-center text-center mb-10">
-                                <div className="p-4 bg-slate-900 rounded-full text-white shadow-xl mb-6">
-                                    <Icon name="mountain" size={28} />
+                <div className="flex h-screen w-screen bg-white relative overflow-hidden">
+                    
+                    {/* 手機端頂部欄：提供選單按鈕 */}
+                    <header className="md:hidden fixed top-0 left-0 right-0 h-16 bg-slate-900 text-white flex items-center justify-between px-6 z-40 shadow-xl">
+                        <button onClick={() => setIsDrawerOpen(true)} className="p-2">
+                            <i className="lucide-menu text-2xl"></i>
+                        </button>
+                        <h1 className="font-serif font-black text-lg tracking-widest">東方哲學館</h1>
+                        <div className="w-8"></div>
+                    </header>
+
+                    {/* 手機端側邊欄遮罩 */}
+                    {isDrawerOpen && (
+                        <div className="md:hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-[50]" onClick={() => setIsDrawerOpen(false)} />
+                    )}
+
+                    {/* 響應式側邊欄：手機上隱藏，點擊才滑出 */}
+                    <aside className={`
+                        fixed md:relative inset-y-0 left-0 w-80 bg-white border-r border-slate-100 flex flex-col z-[60] drawer-transition
+                        ${isDrawerOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
+                    `}>
+                        <div className="p-10 pb-6">
+                            <div className="flex justify-between items-center mb-8">
+                                <div className="flex items-center gap-4">
+                                    <div className="p-3 bg-slate-900 rounded-2xl text-white shadow-lg"><i className="lucide-mountain text-xl"></i></div>
+                                    <h2 className="text-xl font-black font-serif">專題清單</h2>
                                 </div>
-                                <h1 className="text-2xl font-black tracking-[0.2em] font-serif">東方哲學館</h1>
-                                <p className="text-[9px] text-slate-400 font-bold uppercase tracking-[0.4em] mt-3">Daily Wisdom Archive</p>
+                                <button onClick={() => setIsDrawerOpen(false)} className="md:hidden text-slate-300 p-2">
+                                    <i className="lucide-x text-2xl"></i>
+                                </button>
                             </div>
-                            <div className="relative">
-                                <Icon name="search" size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" />
+                            <div className="relative mb-4">
+                                <i className="lucide-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 text-sm"></i>
                                 <input 
-                                    className="w-full pl-10 pr-4 py-3 bg-slate-50 rounded-full text-xs outline-none focus:ring-1 focus:ring-slate-100 transition-all border-none"
-                                    placeholder="探索心靈..."
+                                    className="w-full pl-11 pr-4 py-3 bg-slate-50 rounded-2xl text-xs border-none outline-none focus:ring-1 focus:ring-slate-100"
+                                    placeholder="搜尋智慧命題..."
                                     onChange={(e) => setSearchTerm(e.target.value)}
                                 />
                             </div>
                         </div>
-                        
-                        <div className="flex-1 overflow-y-auto px-6 pb-12 space-y-4 custom-scroll">
-                            {filtered.length > 0 ? filtered.map((item, idx) => (
+
+                        <div className="flex-1 overflow-y-auto px-6 pb-20 space-y-3 no-scrollbar mt-4">
+                            {lessons.filter(l => (l.topic+l.era).includes(searchTerm)).map((item, idx) => (
                                 <button
                                     key={item.fileName || idx}
-                                    onClick={() => { setSelected(item); setShowWisdom(false); }}
-                                    className={`w-full text-left p-6 rounded-2xl transition-all duration-700 relative overflow-hidden ${
+                                    onClick={() => { setSelected(item); setIsDrawerOpen(false); document.getElementById('content-area').scrollTo(0,0); }}
+                                    className={`w-full text-left p-6 rounded-[2.5rem] transition-all duration-300 ${
                                         selected?.fileName === item.fileName 
                                         ? 'bg-slate-900 text-white shadow-2xl -translate-y-1' 
                                         : 'hover:bg-slate-50 text-slate-500'
                                     }`}
                                 >
-                                    <div className={`text-[9px] font-black tracking-[0.2em] uppercase mb-2 ${selected?.fileName === item.fileName ? 'text-slate-400' : 'text-slate-400'}`}>
+                                    <div className={`text-[9px] font-black tracking-widest mb-2 uppercase ${selected?.fileName === item.fileName ? 'text-slate-400' : 'text-indigo-600'}`}>
                                         {item.era}
                                     </div>
-                                    <h3 className="font-bold text-sm leading-snug font-serif tracking-wide">{item.topic}</h3>
+                                    <div className="font-bold text-sm font-serif leading-tight">{item.topic}</div>
                                 </button>
-                            )) : (
-                                <div className="text-center py-12 text-slate-300 text-[10px] tracking-widest uppercase italic font-sans">Silence...</div>
-                            )}
+                            ))}
                         </div>
                     </aside>
 
-                    {/* 特稿內容區 */}
-                    <main className="flex-1 overflow-y-auto bg-white custom-scroll">
+                    {/* 內文主顯示區：手機端滿版優化 */}
+                    <main id="content-area" className="flex-1 overflow-y-auto bg-white pt-16 md:pt-0 no-scrollbar scroll-smooth">
                         {selected ? (
-                            <div className="max-w-3xl mx-auto py-24 px-12 fade-in" key={selected.fileName}>
-                                <div className="mb-24 text-center">
-                                    <div className={`inline-block px-5 py-1.5 rounded-full text-[10px] font-bold border tracking-[0.3em] mb-8 ${getBadgeClass(selected.era)}`}>
+                            <div className="max-w-4xl mx-auto py-12 md:py-24 px-8 md:px-16 animate-in fade-in duration-700" key={selected.fileName}>
+                                <div className="text-center mb-16">
+                                    <div className={`sect-badge ${getSectClass(selected.era)}`}>
                                         {selected.era}
                                     </div>
-                                    <h2 className="text-5xl font-black text-slate-900 mb-10 leading-tight font-serif tracking-tight">
+                                    <h2 className="text-4xl md:text-6xl font-black text-slate-900 mb-10 font-serif leading-tight tracking-tight px-4">
                                         {selected.topic}
                                     </h2>
-                                    <div className="w-12 h-[1px] bg-slate-100 mx-auto"></div>
+                                    <div className="w-16 h-1 bg-slate-900 mx-auto rounded-full opacity-10"></div>
                                 </div>
 
                                 <div 
-                                    className="philosophy-body font-serif"
-                                    dangerouslySetInnerHTML={{ __html: getHtmlContent(selected.fullContent) }}
+                                    className="markdown-render font-serif"
+                                    dangerouslySetInnerHTML={{ __html: cleanContent(selected.fullContent) }}
                                 />
 
-                                <section className="mt-24 p-12 bg-slate-50 rounded-[3rem] border border-slate-100 text-center">
-                                    <h3 className="font-serif font-black text-xl mb-4 text-slate-800 tracking-widest">
-                                        今日觀照練習
-                                    </h3>
-                                    <p className="text-slate-500 text-sm mb-10 leading-loose max-w-md mx-auto">
-                                        智慧若不化為具體行動，僅是空談。請嘗試將此份哲思帶入今日的生活實踐中。
-                                    </p>
-                                    <button 
-                                        onClick={() => setShowWisdom(!showWisdom)} 
-                                        className="px-12 py-3 bg-white border border-slate-200 hover:border-slate-800 transition-all rounded-full text-xs font-bold active:scale-95 shadow-sm"
-                                    >
-                                        {showWisdom ? '回歸靜心' : '開啟觀照'}
-                                    </button>
-                                    {showWisdom && (
-                                        <div className="mt-10 p-8 bg-white rounded-3xl text-slate-600 text-sm leading-relaxed border border-slate-100 shadow-sm animate-in fade-in slide-in-from-top-4 duration-1000 font-serif">
-                                            請參閱本文末端的「每日修身練習」區塊，在那裡您將找到實踐本篇哲學思想的具體步驟。
-                                        </div>
-                                    )}
-                                </section>
-
-                                <footer className="mt-32 pt-12 border-t border-slate-50 flex justify-between items-center text-slate-200 text-[9px] font-bold tracking-[0.5em] uppercase">
-                                    <span>Philosophy Archive 1.0</span>
-                                    <span>Sync: {new Date().toLocaleDateString()}</span>
+                                <footer className="mt-40 pt-12 border-t border-slate-50 flex justify-between items-center text-slate-200 text-[10px] font-bold tracking-[0.5em] uppercase">
+                                    <span>Wisdom Delivery v3.0</span>
+                                    <span>{new Date().toLocaleDateString()}</span>
                                 </footer>
                             </div>
                         ) : (
-                            <div className="h-full flex flex-col items-center justify-center text-slate-50">
-                                <Icon name="wind" size={120} className="mb-8 opacity-10" />
-                                <p className="font-black tracking-[1em] text-[10px] uppercase opacity-40 text-slate-300 font-sans">Quiet Your Heart</p>
+                            <div className="h-full flex flex-col items-center justify-center text-slate-100 italic">
+                                <i className="lucide-wind text-8xl mb-6 opacity-20"></i>
+                                <p className="text-xs tracking-[1em] uppercase">選擇篇章</p>
                             </div>
                         )}
                     </main>
